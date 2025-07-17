@@ -1,0 +1,15 @@
+# Language detection for GitHub
+*.swift linguist-language=Swift
+Sources/EliteBiometric/Extensions/*.swift linguist-language=SwiftUI
+Sources/EliteBiometric/Core/EliteBiometric.swift linguist-language=SwiftUI
+
+# Documentation
+*.md linguist-documentation
+*.txt linguist-documentation
+
+# Configuration files
+*.plist linguist-vendored
+*.xcconfig linguist-vendored
+*.pbxproj linguist-vendored
+*.xcworkspacedata linguist-vendored
+*.xcuserdata linguist-vendored 
