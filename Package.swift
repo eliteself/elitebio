@@ -15,60 +15,33 @@ let package = Package(
         .watchOS(.v10)
     ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
+        // Main library - single import for everything
         .library(
             name: "EliteBiometric",
             targets: ["EliteBiometric"]),
-        .library(
-            name: "EliteBiometricExtensions",
-            targets: ["EliteBiometricExtensions"]),
-        .library(
-            name: "EliteBiometricExamples",
-            targets: ["EliteBiometricExamples"]),
     ],
-    dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-    ],
+    dependencies: [],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        // Single target with all core functionality
         .target(
             name: "EliteBiometric",
             dependencies: [],
-            path: "Sources/EliteBiometric/Core",
+            path: "Sources/EliteBiometric",
             sources: [
-                "EliteBiometric.swift",
-                "KeychainManager.swift",
-                "EliteSecure.swift",
-                "CredentialsRepository.swift"
+                "Core/EliteBiometric.swift",
+                "Core/EliteKeychain.swift",
+                "Core/CredentialsRepository.swift",
+                "Core/EliteSecure.swift",
+                "Core/UserDefault.swift"
             ],
             swiftSettings: [
                 .define("DEBUG", .when(configuration: .debug)),
                 .define("RELEASE", .when(configuration: .release))
             ]
         ),
-        .target(
-            name: "EliteBiometricExtensions",
-            dependencies: ["EliteBiometric"],
-            path: "Sources/EliteBiometric/Extensions",
-            sources: [
-                "EliteBiometricCustomizable.swift",
-                "KeychainPropertyWrapper.swift"
-            ]
-        ),
-        .target(
-            name: "EliteBiometricExamples",
-            dependencies: ["EliteBiometric", "EliteBiometricExtensions"],
-            path: "Sources/EliteBiometric/Examples",
-            sources: [
-                "EliteSecureExample.swift",
-                "StorageExample.swift"
-            ]
-        ),
         .testTarget(
             name: "EliteBiometricTests",
-            dependencies: ["EliteBiometric", "EliteBiometricExtensions"],
+            dependencies: ["EliteBiometric"],
             path: "Tests/EliteBiometricTests"
         ),
     ]
