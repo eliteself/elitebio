@@ -1,16 +1,16 @@
-# elitebio Framework
+# EliteBiometric Framework
 
-A comprehensive, secure, and customizable biometric authentication framework for iOS and watchOS applications.
+A **simple, secure, and powerful** biometric authentication framework for iOS and watchOS applications with clean property wrapper APIs.
 
 ## 🌟 Features
 
 - **🔐 Biometric Authentication**: Face ID, Touch ID, and Apple Watch support
-- **🛡️ Secure Storage**: Keychain integration with EliteSecure
-- **🎨 Customizable UI**: SwiftUI components and customizable themes
-- **⚡ Easy Integration**: Simple API with comprehensive error handling
-- **📱 Multi-Platform**: iOS & watchOS support
-- **🧪 Extensive Examples**: Complete implementation examples
-- **📚 Full Documentation**: Comprehensive guides and tutorials
+- **🛡️ Secure Storage**: EliteSecure property wrapper for keychain storage
+- **⚙️ Simple Preferences**: UserDefault property wrapper for app settings
+- **⚡ Easy Integration**: Clean property wrapper APIs
+- **📱 Multi-Platform**: iOS 17+ & watchOS 10+ support
+- **🧪 Comprehensive Examples**: Complete implementation examples
+- **📚 Full Documentation**: Extensive guides and tutorials
 
 ## 📋 Requirements
 
@@ -39,22 +39,18 @@ Or add it directly in Xcode:
 
 ```
 EliteBiometric/
-├── Core/
-│   ├── EliteBiometric.swift          # Main biometric manager
-│   ├── KeychainManager.swift         # Secure keychain operations
-│   ├── EliteSecure.swift            # Advanced security features
-│   └── CredentialsRepository.swift  # Credential management
-├── Extensions/
-│   ├── EliteBiometricCustomizable.swift  # Customizable components - 🔨
-│   └── KeychainPropertyWrapper.swift     # Property wrapper for keychain
-└── Examples/
-    ├── EliteSecureExample.swift              # Security examples
-    └── StorageExample.swift                  # Storage examples
+├─ Core/
+   ├── EliteBiometric.swift          # Main biometric manager
+   ├── EliteKeychain.swift           # Internal keychain operations
+   ├── EliteSecure.swift             # Secure property wrapper
+   ├── UserDefault.swift             # Preferences property wrapper
+   └── CredentialsRepository.swift   # Credential management
+
 ```
 
 ## 🎯 Quick Start
 
-### Basic Biometric Authentication
+### 1. Basic Biometric Authentication
 
 ```swift
 import EliteBiometric
@@ -75,6 +71,120 @@ class AuthenticationManager: ObservableObject {
 }
 ```
 
+### 2. Secure Data Storage with EliteSecure
+
+```swift
+import EliteBiometric
+
+class AuthManager {
+    @EliteSecure("user_credentials") var credentials: UserCredentials?
+    @EliteSecure("biometric_settings") var biometricSettings: BiometricSettings?
+    
+        @UserDefault(
+    struct UserCredentials: Codable {
+        let accessToken: String
+        let refreshToken: String
+        let expiresIn: Int
+        let createdAt: Date
+        
+        var isExpired: Bool {
+            let expirationDate = createdAt.addingTimeInterval(TimeInterval(expiresIn))
+            return Date() > expirationDate
+        }
+    }
+    
+    struct BiometricSettings: Codable {
+        var isEnabled: Bool = false
+        var biometricType: String = "none"
+        var fallbackToPIN: Bool = true
+    }
+    
+    func saveCredentials(_ creds: UserCredentials) {
+        credentials = creds
+    }
+    
+    func enableBiometrics(type: String) {
+        biometricSettings = BiometricSettings(
+            isEnabled: true,
+            biometricType: type,
+            fallbackToPIN: true
+        )
+    }
+    
+    func clearAllData() {
+        credentials = nil
+        biometricSettings = nil
+    }
+}
+```
+
+### 3. App Preferences with UserDefault
+
+```swift
+import EliteBiometric
+
+class AppSettings {
+    @UserDefault(key: "is_first_launch", defaultValue: true) var isFirstLaunch: Bool
+    @UserDefault(key: "theme_mode", defaultValue: "light") var themeMode: String
+    @UserDefault(key: "notification_enabled", defaultValue: true) var notificationsEnabled: Bool
+    @UserDefault(key: "user_id", defaultValue: "") var userId: String
+    @UserDefault(key: "last_sync_date", defaultValue: Date()) var lastSyncDate: Date
+    @UserDefault(key: "app_version", defaultValue: "1.0.0") var appVersion: String
+    @UserDefault(key: "launch_count", defaultValue: 0) var launchCount: Int
+    @UserDefault(key: "preferred_language", defaultValue: "en") var language: String
+    
+    func resetSettings() {
+        isFirstLaunch = true
+        themeMode = "light"
+        notificationsEnabled = true
+        userId = ""
+        lastSyncDate = Date()
+        launchCount = 0
+    }
+    
+    func incrementLaunchCount() {
+        launchCount += 1
+    }
+}
+```
+
+### 4. Combined Usage
+
+```swift
+import EliteBiometric
+
+class AppManager {
+    // Non-sensitive data - UserDefaults
+    @UserDefault(key: "app_version", defaultValue: "1.0.0") var appVersion: String
+    @UserDefault(key: "launch_count", defaultValue: 0) var launchCount: Int
+    @UserDefault(key: "preferred_language", defaultValue: "en") var language: String
+    
+    // Sensitive data - Keychain
+    @EliteSecure("user_session") var session: UserSession?
+    @EliteSecure("encryption_key") var encryptionKey: Data?
+    
+    struct UserSession: Codable {
+        var userId: String
+        var isLoggedIn: Bool
+        var lastActivity: Date
+    }
+    
+    func incrementLaunchCount() {
+        launchCount += 1
+    }
+    
+    func saveSession(userId: String) {
+        session = UserSession(
+            userId: userId,
+            isLoggedIn: true,
+            lastActivity: Date()
+        )
+    }
+}
+```
+
+## 🔧 Advanced Usage
+
 ### Custom Configuration
 
 ```swift
@@ -91,54 +201,55 @@ let config = BiometricConfig(
 let success = try await biometricManager.authenticate(config: config)
 ```
 
-### SwiftUI Integration
+### EliteSecure Convenience Methods
 
 ```swift
-import SwiftUI
-import EliteBiometric
-
-struct BiometricAuthView: View {
-    @StateObject private var biometricManager = EliteBiometric()
-    
-    var body: some View {
-        VStack {
-            Button("Authenticate with Biometrics") {
-                Task {
-                    await authenticate()
-                }
-            }
-        }
-    }
-    
-    private func authenticate() async {
-        // Implementation here
-    }
-}
-```
-
-## 🔧 Advanced Usage
-
-### Customizable Components
-
-```swift
-import EliteBiometricExtensions
-
-// Use customizable biometric components
-let customizableAuth = EliteBiometricCustomizable()
-customizableAuth.configure(with: customConfig)
-```
-
-### Property Wrapper for Keychain
-
-```swift
-import EliteBiometricExtensions
-
 class SecureDataManager {
-    @KeychainProperty(key: "user_token")
-    var userToken: String?
+    @EliteSecure("pin_data") var pinData: PINData?
+    @EliteSecure("encryption_key") var encryptionKey: Data?
     
-    @KeychainProperty(key: "user_pin")
-    var userPIN: String?
+    struct PINData: Codable {
+        var pin: String
+        var isSet: Bool = true
+        var createdAt: Date = Date()
+        var lastUsed: Date?
+    }
+    
+    func setupPIN(_ pin: String) {
+        pinData = PINData(pin: pin)
+    }
+    
+    func verifyPIN(_ inputPin: String) -> Bool {
+        guard let pinData = pinData else { return false }
+        
+        let isValid = pinData.pin == inputPin
+        
+        if isValid {
+            // Update last used time
+            var updatedData = pinData
+            updatedData.lastUsed = Date()
+            self.pinData = updatedData
+        }
+        
+        return isValid
+    }
+    
+    func refreshAllData() {
+        // Force refresh all cached values
+        pinData?.refresh()
+        encryptionKey?.refresh()
+    }
+    
+    func clearSensitiveData() {
+        encryptionKey = nil
+        pinData = nil
+    }
+    
+    func checkDataIntegrity() -> Bool {
+        // Check if all required data exists
+        return pinData?.exists() == true && 
+               encryptionKey?.exists() == true
+    }
 }
 ```
 
@@ -147,56 +258,89 @@ class SecureDataManager {
 - **Secure Keychain Storage**: All sensitive data stored in iOS Keychain
 - **Biometric Lockout**: Automatic lockout after failed attempts
 - **Device Passcode Fallback**: Graceful fallback to device passcode
-- **Error Handling**: Comprehensive error handling and recovery
-- **Audit Trail**: Detailed logging for security audits
+- **Thread-Safe Operations**: All operations are thread-safe
+- **Smart Caching**: Performance optimization with intelligent caching
+- **Error Handling**: Graceful error handling with detailed logging
 
-## 📱 Platform Support
+## 🎯 Property Wrapper APIs
 
-| Platform | Minimum Version | Features |
-|----------|----------------|----------|
-| iOS | 17.0+ | Face ID, Touch ID, Keychain, Optic ID |
-| watchOS | 10.0+ | Apple Watch authentication |
+### EliteSecure - For Sensitive Data
 
-## 🧪 Testing
+```swift
+@EliteSecure("key_name") var value: Type?
 
-Run the test suite:
+// With custom encoders
+@EliteSecure("key_name", encoder: customEncoder, decoder: customDecoder) var value: Type?
 
-```bash
-swift test
+// Convenience methods
+value?.refresh()     // Force refresh from storage
+value?.clear()       // Remove from storage
+value?.exists()      // Check if exists
+value?.getRawData()  // Get raw data
 ```
 
-## 📚 Documentation
+### UserDefault - For App Preferences
 
-For detailed documentation, see:
-- [API Reference](docs/API.md)
-- [Customization Guide](docs/Customization.md)
-- [Security Best Practices](docs/Security.md)
-- [Migration Guide](docs/Migration.md)
+```swift
+@UserDefault(key: "key_name", defaultValue: defaultValue) var value: Type
 
-## 🤝 Contributing
+// Works like a normal property
+value = newValue
+let currentValue = value
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+## 💡 Best Practices
+
+### When to Use Each Property Wrapper:
+
+#### ✅ Use EliteSecure For:
+- User credentials and tokens
+- PIN codes and passwords
+- Encryption keys
+- Biometric settings
+- Session data
+- Any sensitive information
+
+#### ✅ Use UserDefault For:
+- App preferences and settings
+- UI state and theme settings
+- Non-sensitive user data
+- App configuration
+- Analytics and tracking data
+- Default values needed
+
+### Security Guidelines:
+
+1. **Never store sensitive data in UserDefaults**
+2. **Always use EliteSecure for credentials**
+3. **Provide meaningful default values**
+4. **Handle nil values appropriately**
+5. **Use descriptive key names**
+6. **Clear sensitive data when not needed**
+
+## 🔧 Architecture
+
+```
+EliteBiometric Framework
+├── EliteBiometric.swift (Main biometric manager)
+├── EliteSecure.swift (Secure property wrapper)
+├── UserDefault.swift (Preferences property wrapper)
+├── EliteKeychain.swift (Internal keychain implementation)
+└── CredentialsRepository.swift (Credential management)
+```
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🤝 Contributing
 
-- Apple for LocalAuthentication framework
-- SwiftUI community for inspiration
-- Security researchers for best practices
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/eliteself/elitebio/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/eliteself/elitebio/discussions)
-- **Email**: alexandra.beznosova@email.com
+For support, email alexandra.beznosova@gmail.com or create an issue in this repository.
 
 ---
 
-**Made with 🤍 by eliteself.tech** 
+**Built with 🤍 by eliteself.tech** 
